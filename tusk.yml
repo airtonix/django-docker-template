@@ -1,0 +1,198 @@
+options:
+  project_name:
+    environment: PROJECT_NAME
+    default:
+      command: basename $PWD
+
+  docker_registry:
+    environment: DOCKER_REPO
+    default: docker.pkg.github.com/airtonix/django
+
+  version:
+    environment: GIT_HASH
+    default:
+      command: git rev-parse --short HEAD
+
+tasks:
+
+  dev:
+    run:
+      - task: dev:setup
+      - task:
+          name: docker:up
+          options:
+            services: backend
+            stage: local
+
+  dev:setup:
+    run:
+      - task:
+          name: docker:build
+          options:
+            source: backend
+
+  dev:test:
+    run:
+      - task:
+          name: docker:run
+          options:
+            stage: local
+            service: backend
+            command: tusk test:watch
+
+  dev:shell:
+    run:
+      - task:
+          name: docker:run
+          options:
+            stage: local
+            service: backend
+            command: /bin/sh
+
+  #
+  # CI
+  #
+  ci:backend:test:
+    run:
+      - task:
+          name: docker:run
+          options:
+            service: backend
+            stage: ci
+            command: tusk test
+
+  ci:backend:lint:
+    run:
+      - task:
+          name: docker:run
+          options:
+            service: backend
+            stage: ci
+            command: tusk lint
+
+  #
+  # Docker
+  #
+  docker:build:
+    options:
+      source:
+        usage: Directory to use
+        default: backend
+      repo:
+        usage: Docker repository to use
+        type: string
+        default: ${docker_registry}/${source}
+      tag:
+        usage: if provided, image will get tagged with this
+        default:
+          command: git rev-parse --short HEAD
+    run:
+      - command: docker pull ${repo}:builder || true
+      - command: >-
+          docker build
+          --cache-from ${repo}:builder
+          --file ./${source}/Dockerfile
+          --tag ${repo}:builder
+          --target install
+          ./${source}
+      - command: docker pull ${repo}:latest || true
+      - command: >-
+          docker build
+          --build-arg COMMIT=${version}
+          --cache-from ${repo}:builder
+          --cache-from ${repo}:latest
+          --file ./${source}/Dockerfile
+          --tag ${repo}
+          --target prod
+          ./${source}
+      - when:
+          command: test "${tag}"
+        command: >-
+          docker tag
+          ${repo}
+          "${repo}:${tag}"
+
+  docker:run:
+    options:
+      service:
+        usage: docker-compose service name
+      stage:
+        default: local
+      command:
+        usage: command to run
+    run:
+      - when:
+          exists:
+            - docker-compose--${stage}.yml
+        command: >-
+          docker-compose
+          -f docker-compose.yml
+          -f docker-compose--${stage}.yml
+          run --rm
+          ${service} ${command}
+      - when:
+          not-exists:
+            - docker-compose--${stage}.yml
+        command: >-
+          docker-compose
+          -f docker-compose.yml
+          run --rm
+          ${service} ${command}
+
+  docker:up:
+    options:
+      services:
+        usage: docker-compose service name(s)
+      stage:
+        default: local
+    run:
+      - >-
+        docker-compose
+        -f docker-compose.yml
+        -f docker-compose--${stage}.yml
+        up ${services}
+
+  docker:templates:
+    run:
+      - command: echo "inserting ${version}"
+      - task:
+          name: docker:template
+          options:
+            infile: tools/docker/docker-compose.yml
+            outfile: docker-compose.yml
+      - task:
+          name: docker:template
+          options:
+            infile: tools/docker/docker-compose--ci.yml
+            outfile: docker-compose--ci.yml
+      - task:
+          name: docker:template
+          options:
+            infile: tools/docker/docker-compose--local.yml
+            outfile: docker-compose--local.yml
+
+  docker:template:
+    options:
+      infile:
+        usage: input file
+      outfile:
+        usage: output file
+    run:
+      - >-
+        docker run --rm
+        -v "$(pwd):/tmp"
+        -e version=${version}
+        supinf/envsubst
+        /tmp/${infile} > ./${outfile}
+
+  docker:publish:
+    options:
+      image:
+        usage: docker image to tag
+        type: string
+        default: ${docker_registry}/${project_name}
+      tag:
+        usage: New docker tag
+    run:
+      - docker tag ${image} ${tag}
+      - docker push ${tag}
