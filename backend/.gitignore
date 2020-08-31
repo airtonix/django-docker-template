@@ -1,4 +1,12 @@
+# everything
 *
+
+# but not these types
+!*.py
 !.gitignore
-!**/*.py
 !Dockerfile
+
+# and not these places
+!*/
+!src/
+!src/app/

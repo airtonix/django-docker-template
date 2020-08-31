@@ -1,8 +1,14 @@
+# everything
 *
+
+# but not these types
 !.gitignore
-!.github
-!tools/
-!backend/
 !docker-compose*
 !README.md
 !tusk.yml
+
+# and not these places
+!*/
+!.github/
+!tools/
+!backend/
