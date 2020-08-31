@@ -1,6 +1,6 @@
 options:
   port:
-    default: 1234
+    default: 8000
     environment: PORT
   host:
     default: 0.0.0.0
@@ -10,25 +10,44 @@ tasks:
 
   dev:
     run:
-      - >-
-        npx parcel serve
-        --host ${host}
-        --hmr-port ${hmrport}
-        --port ${port}
-        ./src/index.html
+      - task: migrate
+      - task: runserver
 
-  build:
+
+  manage:
     options:
-      public_url:
-        default: /
-        usage: base url for published site
+      command:
+        usage: Django Command
     run:
-      - set-environment:
-          PARCEL_AUTOINSTALL: false
       - >-
-        npx parcel build
-        --public-url=${public_url}
-        ./src/index.html
+        poetry run
+        ./src/manage.py
+        ${command}
+
+  migrate:
+    run:
+      - task:
+          name: manage
+          options:
+            command: migrate
+
+  runserver:
+    run:
+      - task:
+          name: manage
+          options:
+            command: runserver ${host}:${port}
+
+  fixtures:
+    run:
+      - task: fixtures:users
+
+  fixtures:users:
+    run:
+      - task:
+          name: manage
+          options:
+            command: loaddata users
 
   lint:
     run:

@@ -196,3 +196,17 @@ tasks:
     run:
       - docker tag ${image} ${tag}
       - docker push ${tag}
+
+  #
+  # Project Setup
+  #
+  setup:
+    run:
+      - task:
+          name: docker:build
+          options:
+            source: backend
+
+  setup:project:provision:
+    run:
+      - task: docker:templates

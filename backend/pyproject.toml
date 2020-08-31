@@ -6,6 +6,8 @@ authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
+django = "^3.1"
+django-dynamic-preferences = "^1.10.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
