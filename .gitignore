@@ -2,6 +2,7 @@
 !.gitignore
 !.github
 !tools/
+!backend/
 !docker-compose*
 !README.md
 !tusk.yml
