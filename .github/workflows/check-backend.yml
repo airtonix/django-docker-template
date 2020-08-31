@@ -1,0 +1,43 @@
+name: PR Checks
+
+on:
+  pull_request:
+
+env:
+  CI_SETTINGS__TUSK_VERSION: v0.5.1
+  CI_SETTINGS__DOCKER_REPO: docker.pkg.github.com/airtonix/django
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Local bin path
+        run: echo "::add-path::~/bin"
+
+      - name: Install tusk
+        run: >-
+          curl -sL https://git.io/tusk | sh -s --
+          -b ~/bin $CI_SETTINGS__TUSK_VERSION
+
+      - name: Build ci image
+        run: >-
+          tusk docker:build
+          --source=backend
+          --repo=$CI_SETTINGS__DOCKER_REPO/backend
+          --tag=$GITHUB_SHA
+
+      - name: Template docker-compose
+        run: >-
+          tusk docker:templates
+          --version=$GITHUB_SHA
+
+      - name: Run linting
+        run: >-
+          tusk ci:backend:lint
+
+      - name: Run tests
+        run: >-
+          tusk ci:backend:test

@@ -1,0 +1,14 @@
+version: '2.3'
+services:
+  backend:
+    volumes:
+      - vscode-extensions:/root/.vscode-server/extensions
+
+    command: >-
+      /bin/sh -c "
+        mkdir -p ~/.vscode-server/extensions;
+        while sleep 1000; do :; done
+      "
+
+volumes:
+  vscode-extensions: {}
