@@ -1,0 +1,7 @@
+*
+!.gitignore
+!.github
+!tools/
+!docker-compose*
+!README.md
+!tusk.yml
