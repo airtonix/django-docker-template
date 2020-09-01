@@ -9,6 +9,8 @@ echo "[ENTRYPOINT]: -_- ${ENTRYPOINT_TASKS_DIR}"
 if [ -d "$ENTRYPOINT_TASKS_DIR" ]
 then
   for part in $ENTRYPOINT_TASKS_DIR/*; do
+    echo "[ENTRYPOINT]: @ $part"
+
     filename=$(basename $part)
     task="${filename%.*}"
     declare task_ref="ENTRYPOINT_TASK_${task^^}"
@@ -19,7 +21,7 @@ then
     # if it's not enabled, continue
     [[ -z "${!task_ref}" ]] && continue
 
-    echo "[ENTRYPOINT]: -> $task_ref"
+    echo "[ENTRYPOINT]: \u1F3AB $task_ref"
     . $part
   done
 fi
@@ -27,4 +29,5 @@ fi
 #
 # Launch CMD
 #
+echo "[ENTRYPOINT]: -> $@"
 exec "$@"

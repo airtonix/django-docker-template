@@ -25,17 +25,20 @@ RUN poetry install
 
 FROM install as dev
 
-COPY ./app \
+COPY ./src \
      ./pylint.yml \
      ./
 
 ENV ENTRYPOINT_TASKS_DIR=/entrypoint.d
 
 COPY ./entrypoint.sh /entrypoint.sh
-COPY ./entrypoint.d/* /entrypoint.d/
+COPY ./entrypoint.d/* Dockerfile* /entrypoint.d/
 RUN chmod +x /entrypoint.sh
 RUN chmod +x /entrypoint.d/*
+RUN rm /entrypoint.d/Dockerfile*
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 
 FROM dev as prod
+
+CMD [ "poetry", "django-admin", "runserver", "$HOST:$PORT" ]

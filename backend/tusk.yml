@@ -11,8 +11,27 @@ tasks:
   dev:
     run:
       - task: migrate
+      - task: dev:fixtures
       - task: runserver
 
+  dev:fixtures:
+    run:
+      - task: dev:fixtures:users
+
+  dev:fixtures:users:
+    run:
+      - task:
+          name: manage
+          options:
+            command: loaddata dev-users
+
+  #
+  # Tools
+  #
+  env:info:
+    run:
+      - poetry env info
+      - poetry show
 
   manage:
     options:
@@ -38,17 +57,9 @@ tasks:
           options:
             command: runserver ${host}:${port}
 
-  fixtures:
-    run:
-      - task: fixtures:users
-
-  fixtures:users:
-    run:
-      - task:
-          name: manage
-          options:
-            command: loaddata users
-
+  #
+  # Test
+  #
   lint:
     run:
       - >-

@@ -17,12 +17,20 @@ tasks:
 
   dev:
     run:
-      - task: dev:setup
       - task:
           name: docker:up
           options:
             services: backend
             stage: local
+
+  dev:backend-info:
+    run:
+      - task:
+          name: docker:run
+          options:
+            stage: local
+            service: backend
+            command: tusk env:info
 
   dev:setup:
     run:
@@ -47,7 +55,7 @@ tasks:
           options:
             stage: local
             service: backend
-            command: /bin/sh
+            command: /bin/bash
 
   #
   # CI
@@ -111,6 +119,7 @@ tasks:
           docker tag
           ${repo}
           "${repo}:${tag}"
+      - task: docker:templates
 
   docker:run:
     options:

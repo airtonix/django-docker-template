@@ -3,7 +3,7 @@ version: "2.3"
 services:
 
   backend:
-    image: docker.pkg.github.com/airtonix/django/backend:a2e7728
+    image: docker.pkg.github.com/airtonix/django/backend:30ce402
     ports:
       - 8000:8000
     command: tusk dev
