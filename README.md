@@ -6,7 +6,7 @@
 2. clone it
 3. have tusk
 4. have docker
-5. `tusk setup:project:provision`
+5. `tusk setup`
 
 ### Workflow
 
